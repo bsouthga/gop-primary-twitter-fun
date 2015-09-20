@@ -21,7 +21,7 @@ gulp.task('compile', () => asyncHelpers.parallel([
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('./dist/'))
+    .pipe(gulp.dest('./dist/server/'))
     .on('end', cb),
   cb => gulp
     .src(['./src/common/**/*.js'])
@@ -73,15 +73,14 @@ function reload() {
 gulp.task('reload', ['browserify'], reload);
 
 
-gulp.task('webserver', () => {
+gulp.task('webserver', ['build'], () => {
   gulp.src('./')
-    .pipe(webserver({ open: true }));
+    .pipe(webserver({ open: true, livereload: false }));
 });
 
-gulp.task('watch', ['build', 'webserver'], cb => {
+gulp.task('watch', ['webserver'], () => {
   livereload.listen();
-  gulp.watch(['./src/server/**/*.js', './src/common/**/*.js'], ['compile']);
-  gulp.watch(['./index.html', './src/client/**/*.js'], ['reload']);
+  gulp.watch(['./src/**/*.js', 'index.html'], ['build']);
   nodemon({
     script: 'dist/server/index.js',
     ext: 'js html',

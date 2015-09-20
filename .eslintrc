@@ -60,7 +60,7 @@
     "afterEach": true,
     "it": true,
     "mdb": true,
-    "$": true
+    "angular": true
   },
   "ecmaFeatures": {
     "arrowFunctions": true,

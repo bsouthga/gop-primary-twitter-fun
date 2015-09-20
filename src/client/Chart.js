@@ -1,6 +1,5 @@
 import d3 from 'd3';
 import _ from 'lodash';
-import xinterp from './xinterp';
 
 export default class Chart {
 
@@ -9,25 +8,25 @@ export default class Chart {
     this.render(data);
   }
 
-  render(data) {
+  render(data=this.data) {
 
-    console.log(data);
+    this.data = data;
 
     const points = _(data).pluck('points').flatten().value();
 
     // Set the dimensions of the canvas / graph
-    const margin = this.margin = { top: 60, right: 20, bottom: 30, left: 50 },
-          width  = this.width = 600 - margin.left - margin.right,
-          height = this.height = 300 - margin.top - margin.bottom;
+    const bbox   = this.container.node().getBoundingClientRect(),
+          margin = this.margin = { top: 60, right: 20, bottom: 30, left: 50 },
+          width  = this.width = bbox.width - margin.left - margin.right,
+          height = this.height = bbox.height - margin.top - margin.bottom;
 
     // Set the ranges
     const x = this.x = d3.time.scale().range([0, width]);
     const y = this.y = d3.scale.linear().range([height, 0]);
-    const interpolate = this.interpolate = xinterp({ x, y });
 
     // Scale the range of the data
     x.domain(d3.extent(points, d => new Date(d.date)));
-    y.domain([0, d3.max(points, d => (d.count || 0))]);
+    y.domain([0, d3.max(points, d => (d.value || 0))]);
 
     // Define the axes
     const xAxis = this.xAxis = d3.svg.axis().scale(x)
@@ -39,11 +38,11 @@ export default class Chart {
     // Define the line
     const line = this.line = d3.svg.line()
         .x(d => x(new Date(d.date)))
-        .y(d => y(d.count || 0 ))
+        .y(d => y(d.value || 0 ))
         .interpolate('basis');
 
     // Adds the svg canvas
-    const svg = this.svg = this.container
+    const svg = this.svg = this.container.html('')
       .append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
@@ -60,9 +59,7 @@ export default class Chart {
 
     const imageSize = this.imageSize = 45;
 
-
-
-        // Add the X Axis
+    // Add the X Axis
     this.xAxisG = svg.append('g')
         .attr('class', 'x axis')
         .attr('transform', 'translate(0,' + height + ')');
@@ -81,7 +78,7 @@ export default class Chart {
           .attr({
             r: 4,
             cx : d => x(new Date(_.last(d.points).date)),
-            cy : d => y(_.last(d.points).count)
+            cy : d => y(_.last(d.points).value)
           });
 
 
@@ -92,22 +89,22 @@ export default class Chart {
           .attr('height', imageSize)
           .attr({
             x : d => x(new Date(_.last(d.points).date)) - imageSize/2,
-            y : d => y(_.last(d.points).count) - imageSize - 10
+            y : d => y(_.last(d.points).value) - imageSize - 10
           })
-         .attr('xlink:href', d =>  d.image ? `public/images/${d.image}` : '');
+         .attr('xlink:href', d => `public/images/${d._id.replace(' ', '_')}.png`);
 
 
     return this;
   }
 
   update(data) {
-    console.log(data);
+    this.data = data;
 
     const points = _(data).pluck('points').flatten().compact().value();
 
     // Scale the range of the data
     this.x.domain(d3.extent(points, d => new Date(d.date)));
-    this.y.domain([0, d3.max(points, d => (d.count || 0))]);
+    this.y.domain([0, d3.max(points, d => (d.value || 0))]);
 
     this.svg.selectAll('path.candidate.line')
         .data(data)
@@ -129,7 +126,7 @@ export default class Chart {
         .transition().duration(200)
         .attr({
           x : d => this.x(new Date(_.last(d.points).date)) - this.imageSize/2,
-          y : d => this.y(_.last(d.points).count) - this.imageSize - 10
+          y : d => this.y(_.last(d.points).value) - this.imageSize - 10
         });
 
     this.svg.selectAll('circle')
@@ -138,7 +135,7 @@ export default class Chart {
         .attr({
           r: 4,
           cx : d => this.x(new Date(_.last(d.points).date)),
-          cy : d => this.y(_.last(d.points).count)
+          cy : d => this.y(_.last(d.points).value)
         });
 
     return this;
