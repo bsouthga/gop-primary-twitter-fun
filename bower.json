@@ -1,0 +1,18 @@
+{
+  "name": "twitter-poll",
+  "version": "0.0.0",
+  "authors": [
+    "Ben Southgate <bsouthga@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "skeleton": "~2.0.4"
+  }
+}
