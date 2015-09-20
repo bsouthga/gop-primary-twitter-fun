@@ -5,73 +5,24 @@
     <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
     <link rel="stylesheet"href="/bower_components/skeleton/css/normalize.css" charset="utf-8">
     <link rel="stylesheet"href="/bower_components/skeleton/css/skeleton.css" charset="utf-8">
-    <title>Republican Twitter Race</title>
-    <style media="screen">
-      body {
-        font-family: 'Indie Flower', cursive;
-        color: #ff4444;
-      }
-
-      button.button-default {
-        color: #ff4444;
-        border-color: #ff4444;
-      }
-
-      button.button-default:hover,
-      button.button-default.highlighted {
-        color: #ffffff;
-        background-color: #ff4444;
-        border-color: #ff4444;
-      }
-
-      .container {
-        margin-top: 50px;
-        text-align: center;
-      }
-
-      #race {
-        display: block;
-        width: 100%;
-        height: 600px;
-        margin: 0 auto;
-      }
-
-      path {
-        stroke: #ff4444;
-        stroke-width: 2;
-        fill: none;
-      }
-
-      text {
-        fill: #ff4444;
-        stroke: none;
-      }
-
-      circle {
-        fill: #fff;
-        stroke: #ff4444;
-        stroke-width: 2;
-      }
-
-      .axis path,
-      .axis line {
-        fill: none;
-        stroke: #ff4444;
-        stroke-width: 1;
-        shape-rendering: crispEdges;
-      }
-    </style>
+    <link rel="stylesheet" href="/public/css/main.css" media="screen" title="no title" charset="utf-8">
+    <title>GOP Twitter Derby</title>
   </head>
   <script src="/bower_components/angular/angular.min.js" charset="utf-8"></script>
   <script src="/dist/client/bundle.js" charset="utf-8"></script>
   <body ng-controller="main">
+    <a target="__blank" href='https://github.com/bsouthga/gop-primary-twitter-fun' class="ribbon">View me on GitHub</a>
     <!-- .container is main centered wrapper -->
     <div class="container">
       <div class="row">
         <h1>The GOP Twitter Derby</h1>
-        <h4>by ben</h4>
+        <h5>by <a href="http://bsou.io/about">ben</a><img id="me" src="/public/images/me.png" alt="Me!"/></h5>
+        (<span>{{ clients || 1 }}</span> currently attentive derby fans)
+        <hr>
       </div>
+
       <div class="row">
+        <h3>Total tweets per candidate in the last...</h3>
         <button class="button-default chart-time-agg"
                 ng-class="{'highlighted': timeAgg === 'minute'}"
                 ng-click="timeAgg='minute'">Minute</button>
@@ -79,7 +30,13 @@
                 ng-class="{'highlighted': timeAgg === 'hour'}"
                 ng-click="timeAgg='hour'">Hour</button>
         <div id="race"></div>
+        <div id="race-bar"></div>
       </div>
+
+      <div class="row">
+        <h3>... and Twitter ego massaging vs. polls and prediction markets</h3>
+      </div>
+
     </div>
   </body>
 </html>

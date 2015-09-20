@@ -1,0 +1,108 @@
+body {
+  font-family: 'Indie Flower', cursive;
+  color: #ff4444;
+}
+
+a {
+  color: #ff4444;
+  text-decoration: none;
+}
+
+.row:not(:first-child) {
+  margin-bottom: 40px;
+}
+
+
+#me {
+  width: 30px;
+  margin-left: 10px;
+  margin-bottom: -10px;
+}
+
+a:hover {
+  color: #ff4444;
+  text-decoration: underline;
+}
+
+button.button-default {
+  color: #ff4444;
+  border-color: #ff4444;
+}
+
+button.button-default:hover,
+button.button-default.highlighted {
+  color: #ffffff;
+  background-color: #ff4444;
+  border-color: #ff4444;
+}
+
+.container {
+  margin-top: 50px;
+  text-align: center;
+}
+
+#race {
+  display: block;
+  width: 80%;
+  height: 600px;
+  margin: 0 auto;
+}
+
+path {
+  stroke-width: 2;
+  fill: none;
+}
+
+text {
+  fill: #ff4444;
+  stroke: none;
+}
+
+circle {
+  fill: #fff;
+  stroke-width: 2;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #ff4444;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.ribbon {
+  /* positioning */
+  position: fixed;
+  padding: 5px 45px;
+  width: 128px;
+  /* top left of the page */
+  top: 50px;
+  left: -50px;
+  -webkit-transform: rotate(315deg);
+  -moz-transform: rotate(315deg);
+  -ms-transform: rotate(315deg);
+  transform: rotate(315deg);
+  /* effects with some shadow */
+  text-shadow: 0 0 0 #ffffff, 0 0 5px rgba(0, 0, 0, 0.3);
+  /* looks */
+  background-color: #ff4444;
+  color: #ffffff;
+  font-size: 13px;
+  text-decoration: none;
+  /* webkit antialias fix */
+  -webkit-backface-visibility: hidden;
+  letter-spacing: .5px;
+  -webkit-transition: box-shadow 0.3s linear;
+  -o-transition: box-shadow 0.3s linear;
+  -moz-transition: box-shadow 0.3s linear;
+  -ms-transition: box-shadow 0.3s linear;
+  -kthtml-transition: box-shadow 0.3s linear;
+  transition: box-shadow 0.3s linear;
+}
+
+
+a.ribbon:hover {
+  color: #fff;
+  box-shadow: 0 0 0 3px #ff4444, 0 0 20px -3px rgba(0, 0, 0, 0.5);
+}

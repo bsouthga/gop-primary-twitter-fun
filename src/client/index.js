@@ -3,9 +3,17 @@ import io from 'socket.io-client';
 import Chart from './Chart';
 import moment from 'moment';
 
+/*
+  TODO:
+    - yAxis gridlines
+    - BarChart for time period
+    - scatterplots for polls + prediction
+    - mouseover uses interpolated estimate of value, faces "say" number
+    - expire tweet data after one day
+*/
+
 angular.module('app', [])
   .controller('main', ['$scope', $scope => {
-
 
     const timeAggTypes = ['minute', 'hour'],
           candidateHash = timeAggTypes.reduce(
@@ -18,14 +26,12 @@ angular.module('app', [])
     let chart,
         errorCount = 0;
 
-
     $scope.$watch('timeAgg', timeAgg => {
       if (!timeAgg || !chart) {
         return;
       }
       chart.render(_.values(candidateHash[$scope.timeAgg]));
     });
-        
 
     ws.on('error', () => {
       console.log('connection error, retrying in 1 second...');
@@ -44,6 +50,18 @@ angular.module('app', [])
       console.log('Connected to socket!');
     });
 
+
+    ws.on('count', data => {
+      const { clients } = JSON.parse(data);
+      $scope.$apply(() => {
+        $scope.clients = clients;
+      })
+    });
+
+    ws.on('polls', jsonString => {
+      const data = JSON.parse(jsonString);
+      console.log(data);
+    });
 
     ws.on('data', jsonString => {
       if (jsonString) {

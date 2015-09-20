@@ -5,16 +5,23 @@ import pmongo from 'promised-mongo';
 import credentials from '../common/credentials';
 import candidateList from '../common/candidates';
 import socket from 'socket.io';
+import request from 'request';
+
+const prequest = url => new Promise((res, rej) => {
+  request.get(url, (error, response, body) => {
+    error ? rej(error) : res(response);
+  })
+});
 
 const db      = pmongo('twitter-poll'),
-      twitter = db.collection('twitter');
+      twitter = db.collection('twitter'),
       // markets = db.collection('markets'),
-      // polls   = db.collection('polls'),
-      // urls    = {
-      //   prediction : 'http://table-cache1.predictwise.com/latest/table_1498.json',
-      //   // add timestamp as query param
-      //   rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
-      // };
+      polls   = db.collection('polls'),
+      urls    = {
+        prediction : 'http://table-cache1.predictwise.com/latest/table_1498.json',
+        // add timestamp as query param
+        rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
+      };
 
 const candidates = candidateList.map(name => {
   const regex = new RegExp(
@@ -22,6 +29,22 @@ const candidates = candidateList.map(name => {
   );
   return { name, in : s => regex.test(s) };
 });
+
+
+
+async function retrievePollData() {
+  const response = await prequest(urls.rcp + `?${+new Date()}`),
+        data = JSON.parse(
+          response.body.replace('return_json(', '').replace(');', '')
+        );
+  await polls.insert(data);
+}
+
+async function queryPollData() {
+  const [ data ]  = await polls.find({}).sort({ _id : -1 }).limit(1).toArray();
+  return data.poll.rcp_avg[0];
+}
+
 
 
 /*
@@ -93,6 +116,8 @@ async function watchTwitter() {
 
     let clients = 0;
 
+    wss.broadcast = (data, type='data') => wss.sockets.emit(type, JSON.stringify(data));
+
     wss.on('connect', async(ws) => {
       console.log();
       // send minute and hour level aggregations
@@ -101,15 +126,17 @@ async function watchTwitter() {
         type: 'series',
         data: { minute, hour }
       }));
+      ws.emit('polls', JSON.stringify(await queryPollData()))
       clients++;
+      wss.broadcast({ clients }, 'count');
       ws.on('disconnect', () => {
         clients--;
+        wss.broadcast({ clients }, 'count');
         console.log(`Client disconnected... (${clients} connections open)`);
       });
       console.log(`Client connected... (${clients} connections open)`);
     });
 
-    wss.broadcast = data => wss.sockets.emit('data', JSON.stringify(data));
 
     console.log('connecting to twitter api...')
     const T = new Twit(credentials),

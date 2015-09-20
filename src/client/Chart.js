@@ -1,10 +1,24 @@
 import d3 from 'd3';
 import _ from 'lodash';
+import candidates from '../common/candidates';
 
 export default class Chart {
 
   constructor({ id, data }) {
     this.container = d3.select(id);
+    this.colors = d3.scale.ordinal()
+      .domain(candidates)
+      .range([
+        '#8dd3c7',
+        '#ffffb3',
+        '#bebada',
+        '#fb8072',
+        '#80b1d3',
+        '#fdb462',
+        '#b3de69',
+        '#fccde5',
+        '#d9d9d9'
+      ]);
     this.render(data);
   }
 
@@ -19,6 +33,7 @@ export default class Chart {
           margin = this.margin = { top: 60, right: 20, bottom: 30, left: 50 },
           width  = this.width = bbox.width - margin.left - margin.right,
           height = this.height = bbox.height - margin.top - margin.bottom;
+
 
     // Set the ranges
     const x = this.x = d3.time.scale().range([0, width]);
@@ -55,6 +70,9 @@ export default class Chart {
         .attr({
           class: d => `candidate line ${d._id.toLowerCase().replace(' ', '-')}`,
           d: d => line(d.points)
+        })
+        .style({
+          stroke: d => this.colors(d._id)
         });
 
     const imageSize = this.imageSize = 45;
@@ -79,6 +97,9 @@ export default class Chart {
             r: 4,
             cx : d => x(new Date(_.last(d.points).date)),
             cy : d => y(_.last(d.points).value)
+          })
+          .style({
+            stroke: d => this.colors(d._id)
           });
 
 
