@@ -8,14 +8,14 @@ import socket from 'socket.io';
 import request from 'request';
 
 const prequest = url => new Promise((res, rej) => {
-  request.get(url, (error, response, body) => {
+  request.get(url, (error, response) => {
     error ? rej(error) : res(response);
-  })
+  });
 });
 
 const db      = pmongo('twitter-poll'),
       twitter = db.collection('twitter'),
-      // markets = db.collection('markets'),
+      markets = db.collection('markets'),
       polls   = db.collection('polls'),
       urls    = {
         prediction : 'http://table-cache1.predictwise.com/latest/table_1498.json',
@@ -31,21 +31,48 @@ const candidates = candidateList.map(name => {
 });
 
 
+watchTwitter();
+//retrieveMarketData();
+
+
+async function retrieveMarketData() {
+  try {
+    const response = await prequest(urls.prediction),
+          data = JSON.parse(response.body),
+          percentages = data.table.reduce((acc, row) => {
+            const [ name, percentage ] = row;
+            acc[name] = parseFloat(percentage);
+            return acc;
+          }, {});
+    await markets.insert({
+      percentages,
+      date: moment(data.timestamp, 'MM-DD-YYYY hh:mma').toDate()
+    });
+  } catch (error) {
+    console.log(error.stack || error);
+  }
+}
+
 
 async function retrievePollData() {
   const response = await prequest(urls.rcp + `?${+new Date()}`),
         data = JSON.parse(
-          response.body.replace('return_json(', '').replace(');', '')
+          response.body
+                  .replace('return_json(', '')
+                  .replace(');', '')
         );
   await polls.insert(data);
 }
 
 async function queryPollData() {
-  const [ data ]  = await polls.find({}).sort({ _id : -1 }).limit(1).toArray();
+  const [ data ]  = await polls
+      .find({})
+      .sort({ _id : -1 })
+      .limit(1)
+      .toArray();
+
   return data.poll.rcp_avg[0];
 }
-
-
 
 /*
  * Get series for given time length
@@ -174,10 +201,7 @@ async function watchTwitter() {
       const text = tweet.text.toLowerCase();
       candidates.forEach(candidate => {
         if(candidate.in(text)) {
-          twitter.insert({
-            name: candidate.name,
-            date: new Date()
-          });
+          twitter.insert({ name: candidate.name, date: new Date() });
         }
       });
     });
@@ -187,5 +211,3 @@ async function watchTwitter() {
   }
 
 }
-
-watchTwitter();

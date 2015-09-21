@@ -73,14 +73,15 @@ function reload() {
 gulp.task('reload', ['browserify'], reload);
 
 
-gulp.task('webserver', ['build'], () => {
+gulp.task('webserver', () => {
   gulp.src('./')
     .pipe(webserver({ open: true, livereload: false }));
 });
 
 gulp.task('watch', ['webserver'], () => {
   livereload.listen();
-  gulp.watch(['./src/**/*.js', 'index.html'], ['build']);
+  gulp.watch(['./src/client/**/*.js', 'index.html'], ['browserify']);
+  gulp.watch(['./src/server/**/*.js'], ['compile']);
   nodemon({
     script: 'dist/server/index.js',
     ext: 'js html',

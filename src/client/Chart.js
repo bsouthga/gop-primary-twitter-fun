@@ -1,24 +1,11 @@
 import d3 from 'd3';
 import _ from 'lodash';
-import candidates from '../common/candidates';
+import util from './util';
 
 export default class Chart {
 
   constructor({ id, data }) {
     this.container = d3.select(id);
-    this.colors = d3.scale.ordinal()
-      .domain(candidates)
-      .range([
-        '#8dd3c7',
-        '#ffffb3',
-        '#bebada',
-        '#fb8072',
-        '#80b1d3',
-        '#fdb462',
-        '#b3de69',
-        '#fccde5',
-        '#d9d9d9'
-      ]);
     this.render(data);
   }
 
@@ -30,7 +17,7 @@ export default class Chart {
 
     // Set the dimensions of the canvas / graph
     const bbox   = this.container.node().getBoundingClientRect(),
-          margin = this.margin = { top: 60, right: 20, bottom: 30, left: 50 },
+          margin = this.margin = { top: 60, right: 20, bottom: 30, left: 70 },
           width  = this.width = bbox.width - margin.left - margin.right,
           height = this.height = bbox.height - margin.top - margin.bottom;
 
@@ -72,10 +59,8 @@ export default class Chart {
           d: d => line(d.points)
         })
         .style({
-          stroke: d => this.colors(d._id)
+          stroke: d => util.colors(d._id)
         });
-
-    const imageSize = this.imageSize = 45;
 
     // Add the X Axis
     this.xAxisG = svg.append('g')
@@ -99,21 +84,35 @@ export default class Chart {
             cy : d => y(_.last(d.points).value)
           })
           .style({
-            stroke: d => this.colors(d._id)
+            stroke: d => util.colors(d._id)
           });
 
 
     svg.append('g').selectAll('image')
         .data(data)
         .enter().append('image')
-          .attr('width', imageSize)
-          .attr('height', imageSize)
+          .attr('width', util.imageSize)
+          .attr('height', util.imageSize)
           .attr({
-            x : d => x(new Date(_.last(d.points).date)) - imageSize/2,
-            y : d => y(_.last(d.points).value) - imageSize - 10
+            x : d => x(new Date(_.last(d.points).date)) - util.imageSize/2,
+            y : d => y(_.last(d.points).value) - util.imageSize - 10
           })
          .attr('xlink:href', d => `public/images/${d._id.replace(' ', '_')}.png`);
 
+    svg.append('text')
+     .text(`Tweet Count`)
+     .attr({
+       class : 'y axis-title',
+       x: function() {
+         const bb = this.getBoundingClientRect();
+         return -height/2 - bb.width/2;
+       },
+       y: function() {
+         const bb = this.getBoundingClientRect();
+         return - margin.left + bb.height;
+       },
+       transform: 'rotate(270)'
+     });
 
     return this;
   }
@@ -146,8 +145,8 @@ export default class Chart {
         .data(data)
         .transition().duration(200)
         .attr({
-          x : d => this.x(new Date(_.last(d.points).date)) - this.imageSize/2,
-          y : d => this.y(_.last(d.points).value) - this.imageSize - 10
+          x : d => this.x(new Date(_.last(d.points).date)) - util.imageSize/2,
+          y : d => this.y(_.last(d.points).value) - util.imageSize - 10
         });
 
     this.svg.selectAll('circle')

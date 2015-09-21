@@ -11,18 +11,30 @@
   <script src="/bower_components/angular/angular.min.js" charset="utf-8"></script>
   <script src="/dist/client/bundle.js" charset="utf-8"></script>
   <body ng-controller="main">
-    <a target="__blank" href='https://github.com/bsouthga/gop-primary-twitter-fun' class="ribbon">View me on GitHub</a>
-    <!-- .container is main centered wrapper -->
+    <a target="__blank" href='https://github.com/bsouthga/gop-primary-twitter-fun' class="ribbon">
+      View me on GitHub!
+    </a>
     <div class="container">
+
       <div class="row">
         <h1>The GOP Twitter Derby</h1>
-        <h5>by <a href="http://bsou.io/about">ben</a><img id="me" src="/public/images/me.png" alt="Me!"/></h5>
-        (<span>{{ clients || 1 }}</span> currently attentive derby fans)
+        (You're watching with <span>{{ clients - 1 | number:0 }}</span> other attentive derby fan{{clients - 1 === 1 ? '' : 's'}}!)
         <hr>
       </div>
 
       <div class="row">
-        <h3>Total tweets per candidate in the last...</h3>
+        <h3>Total tweets about each candidate in the last...</h3>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'minute'}"
+                ng-click="timeAgg='minute'">Minute</button>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'hour'}"
+                ng-click="timeAgg='hour'">Hour</button>
+        <div id="race-bar"></div>
+      </div>
+
+      <div class="row">
+        <h3>...tracking Twitter love over time...</h3>
         <button class="button-default chart-time-agg"
                 ng-class="{'highlighted': timeAgg === 'minute'}"
                 ng-click="timeAgg='minute'">Minute</button>
@@ -30,11 +42,33 @@
                 ng-class="{'highlighted': timeAgg === 'hour'}"
                 ng-click="timeAgg='hour'">Hour</button>
         <div id="race"></div>
-        <div id="race-bar"></div>
       </div>
 
       <div class="row">
-        <h3>... and Twitter ego massaging vs. polls and prediction markets</h3>
+        <h3>...Twitter ego massaging vs. polls...</h3>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'minute'}"
+                ng-click="timeAgg='minute'">Minute</button>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'hour'}"
+                ng-click="timeAgg='hour'">Hour</button>
+        <div id="poll-scatter"></div>
+      </div>
+
+
+      <div class="row">
+        <h3>...and Twitter ego massaging vs. prediction markets...</h3>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'minute'}"
+                ng-click="timeAgg='minute'">Minute</button>
+        <button class="button-default chart-time-agg"
+                ng-class="{'highlighted': timeAgg === 'hour'}"
+                ng-click="timeAgg='hour'">Hour</button>
+      </div>
+
+      <div class="row">
+        <hr>
+        <h5>by <a href="http://bsou.io/about">ben</a><img id="me" src="/public/images/me.png" alt="Me!"/> 2015</h5>
       </div>
 
     </div>

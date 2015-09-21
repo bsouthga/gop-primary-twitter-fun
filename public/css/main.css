@@ -9,7 +9,7 @@ a {
 }
 
 .row:not(:first-child) {
-  margin-bottom: 40px;
+  margin-bottom: 80px;
 }
 
 
@@ -41,11 +41,17 @@ button.button-default.highlighted {
   text-align: center;
 }
 
-#race {
+#race,
+#race-bar,
+#poll-scatter {
   display: block;
   width: 80%;
   height: 600px;
   margin: 0 auto;
+}
+
+#race-bar {
+  height: 300px;
 }
 
 path {
@@ -63,8 +69,10 @@ circle {
   stroke-width: 2;
 }
 
+
 .axis path,
-.axis line {
+.axis line,
+line.divider {
   fill: none;
   stroke: #ff4444;
   stroke-width: 1;
