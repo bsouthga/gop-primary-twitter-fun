@@ -63,7 +63,7 @@ export default class Bar {
           y : height + 10,
           class: d => d.name.replace(' ', '-').toLowerCase()
         })
-       .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
+       .attr('xlink:href', d => `images/${d.name.replace(' ', '_')}.png`);
 
     return this;
   }
@@ -91,7 +91,7 @@ export default class Bar {
       .attr('height', d => height - y(d.value));
 
     bar.select('image')
-       .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
+       .attr('xlink:href', d => `images/${d.name.replace(' ', '_')}.png`);
 
     return this;
   }

@@ -2,6 +2,8 @@ import d3 from 'd3';
 import _ from 'lodash';
 import util from './util';
 
+window.d3 = d3;
+
 export default class Chart {
 
   constructor({ id, data }) {
@@ -13,11 +15,13 @@ export default class Chart {
 
     this.data = data;
 
+    const { container } = this;
+
     const points = _(data).pluck('points').flatten().value();
 
     // Set the dimensions of the canvas / graph
     const bbox   = this.container.node().getBoundingClientRect(),
-          margin = this.margin = { top: 60, right: 20, bottom: 30, left: 70 },
+          margin = this.margin = { top: 60, right: 50, bottom: 30, left: 70 },
           width  = this.width = bbox.width - margin.left - margin.right,
           height = this.height = bbox.height - margin.top - margin.bottom;
 
@@ -44,7 +48,7 @@ export default class Chart {
         .interpolate('basis');
 
     // Adds the svg canvas
-    const svg = this.svg = this.container.html('')
+    const svg = this.svg = container.html('')
       .append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
@@ -79,6 +83,7 @@ export default class Chart {
         .data(data)
         .enter().append('circle')
           .attr({
+            class: 'point',
             r: 4,
             cx : d => x(new Date(_.last(d.points).date)),
             cy : d => y(_.last(d.points).value),
@@ -88,6 +93,23 @@ export default class Chart {
             stroke: d => util.colors(d._id)
           });
 
+    const tooltipDate = svg.append('g').append('text')
+      .attr({
+        opacity: 0,
+        x: 20,
+        y: 20
+      });
+
+    svg.append('g').selectAll('text')
+      .data(data)
+      .enter().append('text')
+      .text(d => _.last(d.points).value)
+      .attr({
+        opacity : 0,
+        x : d => x(new Date(_.last(d.points).date)) + util.imageSize/2 + 5,
+        y : d => y(_.last(d.points).value) - util.imageSize/2,
+        class: d => 'display-number ' + d._id.replace(' ', '-').toLowerCase()
+      });
 
     svg.append('g').selectAll('image')
         .data(data)
@@ -99,7 +121,7 @@ export default class Chart {
             y : d => y(_.last(d.points).value) - util.imageSize - 10,
             class: d => d._id.replace(' ', '-').toLowerCase()
           })
-         .attr('xlink:href', d => `public/images/${d._id.replace(' ', '_')}.png`);
+         .attr('xlink:href', d => `images/${d._id.replace(' ', '_')}.png`);
 
     svg.append('text')
      .text(`Tweet Count`)
@@ -116,10 +138,86 @@ export default class Chart {
        transform: 'rotate(270)'
      });
 
+    const plexiglass = svg.append('rect')
+      .attr({
+        width,
+        height,
+        opacity: 0
+      });
+
+    plexiglass.on('mousemove', () => {
+      svg.selectAll('path.candidate.line').each((d, i) => {
+
+        const nameClass   = d._id.replace(' ', '-').toLowerCase(),
+              path        = svg.select(`path.candidate.line.${nameClass}`),
+              circle      = svg.select(`circle.${nameClass}`),
+              image       = svg.select(`image.${nameClass}`),
+              displayNum  = svg.select(`.display-number.${nameClass}`),
+              pathEl      = path.node(),
+              pathLength  = pathEl.getTotalLength(),
+              bbox        = container.node().getBoundingClientRect(),
+              posx        = d3.event.pageX - bbox.left - margin.left;
+
+        let beginning = posx,
+            start = beginning,
+            end = pathLength,
+            finish = end,
+            target,
+            pos;
+
+        if (i === 0) {
+          tooltipDate.text(x.invert(posx));
+        }
+
+        while (true) {
+          target = Math.floor((beginning + end) / 2);
+          pos = pathEl.getPointAtLength(target);
+          if ((target === end || target === beginning) && pos.x !== x) {
+            break;
+          }
+          if (pos.x > posx)      end = target;
+          else if (pos.x < posx) beginning = target;
+          else                break; //position found
+        }
+
+        if (start <= posx && beginning >= posx) {
+
+          circle
+            .attr('cx', posx)
+            .attr('cy', pos.y);
+
+          image
+            .attr({
+              x : posx - util.imageSize/2,
+              y : pos.y - util.imageSize - 10,
+            });
+
+          displayNum
+            .text(util.format(y.invert(pos.y)))
+            .attr({
+              x : posx + util.imageSize/2 + 5,
+              y : pos.y - util.imageSize/2 ,
+            });
+        }
+
+      });
+    });
+    plexiglass.on('mouseover', () => {
+      svg.selectAll('.display-number').attr('opacity', 1);
+      tooltipDate.attr('opacity', 1);
+      this.hovering = true;
+    });
+    plexiglass.on('mouseout', () => {
+      svg.selectAll('.display-number').attr('opacity', 0);
+      tooltipDate.attr('opacity', 0);
+      this.hovering = false;
+      this.update();
+    });
+
     return this;
   }
 
-  update(data) {
+  update(data=this.data) {
     this.data = data;
 
     const points = _(data).pluck('points').flatten().compact().value();
@@ -143,22 +241,27 @@ export default class Chart {
       .transition().duration(200)
       .call(this.yAxis);
 
-    this.svg.selectAll('image')
-        .data(data)
-        .transition().duration(200)
-        .attr({
-          x : d => this.x(new Date(_.last(d.points).date)) - util.imageSize/2,
-          y : d => this.y(_.last(d.points).value) - util.imageSize - 10
-        });
 
-    this.svg.selectAll('circle')
-        .data(data)
-        .transition().duration(200)
-        .attr({
-          r: 4,
-          cx : d => this.x(new Date(_.last(d.points).date)),
-          cy : d => this.y(_.last(d.points).value)
-        });
+    if (!this.hovering) {
+
+      this.svg.selectAll('image')
+          .data(data)
+          .transition().duration(200)
+          .attr({
+            x : d => this.x(new Date(_.last(d.points).date)) - util.imageSize/2,
+            y : d => this.y(_.last(d.points).value) - util.imageSize - 10
+          });
+
+      this.svg.selectAll('circle')
+          .data(data)
+          .transition().duration(200)
+          .attr({
+            r: 4,
+            cx : d => this.x(new Date(_.last(d.points).date)),
+            cy : d => this.y(_.last(d.points).value)
+          });
+    }
+
 
     return this;
   }

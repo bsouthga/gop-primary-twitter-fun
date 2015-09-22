@@ -15,5 +15,6 @@ export default {
       '#fccde5',
       '#d9d9d9'
     ]),
-  imageSize : 45
+  imageSize : 45,
+  format: d3.format(',.0f')
 }

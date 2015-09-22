@@ -73,6 +73,7 @@ export default class Scatter {
 
     const displayDate = moment(data.date).format('MMMM Do YYYY');
 
+
     svg.append('text')
       .text(`${this.xTitle} (updated: ${displayDate})`)
       .attr({
@@ -86,6 +87,7 @@ export default class Scatter {
           return width/2 - bb.width/2;
         }
       });
+
 
     svg.append('text')
       .text(`Percentage of Tweets in the last ${data.timeAgg}`)
@@ -102,6 +104,7 @@ export default class Scatter {
         transform: 'rotate(270)'
       });
 
+
     svg.append('text')
       .text(`(Excess Twitter love)`)
       .attr({
@@ -114,6 +117,7 @@ export default class Scatter {
           return width/4 - bb.width/2;
         }
       });
+
 
     svg.append('text')
       .text(`(Not enough Twitter love)`)
@@ -143,6 +147,7 @@ export default class Scatter {
           stroke: d => util.colors(d.name)
         });
 
+
     svg.append('g').selectAll('image')
         .data(data.series)
         .enter().append('image')
@@ -153,7 +158,7 @@ export default class Scatter {
             y : d => y(d.y) - util.imageSize - 10,
             class: d => d.name.replace(' ', '-').toLowerCase()
           })
-         .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
+         .attr('xlink:href', d => `/images/${d.name.replace(' ', '_')}.png`);
 
 
 

@@ -51,8 +51,13 @@ function server() {
 
   // request new polls + markets every hour
   setInterval(() => {
-    retrieveMarketData();
-    retrievePollData();
+    Promise.all([
+      retrieveMarketData(),
+      retrievePollData()
+    ])
+    .catch(error => {
+      console.log(error.stack || error);
+    });
   }, 1000*60*60);
 
   const app = express();
