@@ -28,28 +28,16 @@ angular.module('app', [])
               this.chart && this.chart[method](this.data[$scope.timeAgg]);
             }
           },
-          polls = {
-            data: {},
-            series: {},
-            draw(method='render') {
-              this.chart && this.chart[method]({
-                timeAgg: $scope.timeAgg,
-                date: this.date,
-                series: this.series[$scope.timeAgg]
-              });
-            }
+          draw = function(method='render') {
+            this.chart && this.chart[method]({
+              timeAgg: $scope.timeAgg,
+              date: this.date,
+              series: this.series[$scope.timeAgg]
+            });
+            return this;
           },
-          markets = {
-            data: {},
-            series: {},
-            draw(method='render') {
-              this.chart && this.chart[method]({
-                timeAgg: $scope.timeAgg,
-                date: this.date,
-                series: this.series[$scope.timeAgg]
-              });
-            }
-          },
+          polls = { data: {}, series: {}, draw },
+          markets = { data: {}, series: {}, draw },
           ws = io('http://localhost:8080/');
 
     let chart,
@@ -63,6 +51,7 @@ angular.module('app', [])
       }
       chart.render(_.values(candidateHash[$scope.timeAgg]));
       polls.draw();
+      markets.draw();
       bar.draw('update');
     });
 
@@ -91,7 +80,9 @@ angular.module('app', [])
     });
 
     ws.on('markets', jsonString => {
-      markets.data = JSON.parse(jsonString);
+      const results = JSON.parse(jsonString)
+      markets.data = results.data;
+      markets.date = results.date;
     });
 
     ws.on('polls', jsonString => {
@@ -127,6 +118,7 @@ angular.module('app', [])
           window.onresize = _.debounce(() => {
             chart.render(_.values(candidateHash[$scope.timeAgg]));
             polls.draw();
+            markets.draw();
             bar.draw();
           }, 100);
 
@@ -158,6 +150,10 @@ angular.module('app', [])
               return { name, x: value, y: (pointHash[name]*100 || 0) / pointTotal };
             });
 
+            markets.series[time] = _.map(markets.data, (value, name) => {
+              return { name, x: value, y: (pointHash[name]*100 || 0) / pointTotal };
+            });
+
           });
 
 
@@ -177,10 +173,25 @@ angular.module('app', [])
                 timeAgg: $scope.timeAgg,
                 date: polls.date,
                 series: polls.series[$scope.timeAgg]
-              }
+              },
+              xTitle: 'Real Clear Politics Poll Average'
             });
           } else {
             polls.draw('update');
+          }
+
+
+          if (!markets.chart) {
+            markets.chart = new Scatter({
+              id: '#market-scatter', data: {
+                timeAgg: $scope.timeAgg,
+                date: markets.date,
+                series: markets.series[$scope.timeAgg]
+              },
+              xTitle: 'PredictWise Estimates'
+            });
+          } else {
+            markets.draw('update');
           }
 
           let lookback = 'day';

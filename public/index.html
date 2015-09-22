@@ -5,7 +5,7 @@
     <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
     <link rel="stylesheet"href="/bower_components/skeleton/css/normalize.css" charset="utf-8">
     <link rel="stylesheet"href="/bower_components/skeleton/css/skeleton.css" charset="utf-8">
-    <link rel="stylesheet" href="/public/css/main.css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="/css/main.css" media="screen" title="no title" charset="utf-8">
     <title>GOP Twitter Derby</title>
   </head>
   <script src="/bower_components/angular/angular.min.js" charset="utf-8"></script>
@@ -64,11 +64,12 @@
         <button class="button-default chart-time-agg"
                 ng-class="{'highlighted': timeAgg === 'hour'}"
                 ng-click="timeAgg='hour'">Hour</button>
+        <div id="market-scatter"></div>
       </div>
 
       <div class="row">
         <hr>
-        <h5>by <a href="http://bsou.io/about">ben</a><img id="me" src="/public/images/me.png" alt="Me!"/> 2015</h5>
+        <h5>by <a href="http://bsou.io/about">ben</a><img id="me" src="/images/me.png" alt="Me!"/> 2015</h5>
       </div>
 
     </div>

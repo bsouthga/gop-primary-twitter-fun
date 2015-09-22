@@ -4,8 +4,9 @@ import moment from 'moment';
 
 export default class Scatter {
 
-  constructor({ id, data }) {
+  constructor({ id, data, xTitle }) {
     this.container = d3.select(id);
+    this.xTitle = xTitle;
     this.render(data);
   }
 
@@ -73,7 +74,7 @@ export default class Scatter {
     const displayDate = moment(data.date).format('MMMM Do YYYY');
 
     svg.append('text')
-      .text(`Real Clear Politics Poll Average (updated: ${displayDate})`)
+      .text(`${this.xTitle} (updated: ${displayDate})`)
       .attr({
         class : 'x axis-title',
         y: function() {
@@ -135,7 +136,8 @@ export default class Scatter {
         .attr({
           cx: d => x(d.x),
           cy: d => y(d.y),
-          r: 4
+          r: 4,
+          class: d => d.name.replace(' ', '-').toLowerCase()
         })
         .style({
           stroke: d => util.colors(d.name)
@@ -148,7 +150,8 @@ export default class Scatter {
           .attr('height', util.imageSize)
           .attr({
             x : d => x(d.x) - util.imageSize/2,
-            y : d => y(d.y) - util.imageSize - 10
+            y : d => y(d.y) - util.imageSize - 10,
+            class: d => d.name.replace(' ', '-').toLowerCase()
           })
          .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
 

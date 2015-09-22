@@ -39,7 +39,7 @@ export default class Bar {
     const bar = svg.append('g').selectAll('g.bar')
         .data(data)
       .enter().append('g')
-        .attr('class', 'bar')
+        .attr('class', d => 'bar ' + d.name.replace(' ', '-').toLowerCase())
         .attr('transform', (d, i) => 'translate(' + i * barWidth + ',0)');
 
     bar.append('rect')
@@ -53,12 +53,15 @@ export default class Bar {
         .attr('x', function() { return barWidth/2 - this.getBoundingClientRect().width/2; })
         .attr('y', d => y(d.value) - 5 );
 
+    const headSize = Math.min(barWidth*0.8, margin.bottom*0.8)
+
     bar.append('image')
-        .attr('width', barWidth*.8)
-        .attr('height', barWidth*.8)
+        .attr('width', headSize)
+        .attr('height', headSize)
         .attr({
           x :  function() { return barWidth/2 - this.getBoundingClientRect().width/2; },
-          y : height + 10
+          y : height + 10,
+          class: d => d.name.replace(' ', '-').toLowerCase()
         })
        .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
 
@@ -82,9 +85,13 @@ export default class Bar {
       .attr('y', d => y(d.value) - 5 );
 
     bar.select('rect')
+      .style('fill', d => util.colors(d.name))
       .transition().duration(200)
       .attr('y', d => y(d.value))
       .attr('height', d => height - y(d.value));
+
+    bar.select('image')
+       .attr('xlink:href', d => `public/images/${d.name.replace(' ', '_')}.png`);
 
     return this;
   }

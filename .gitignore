@@ -1,4 +1,4 @@
 /node_modules
-/bower_components
-/src/common/credentials.json
-/dist
+/src/common/credentials.js
+/public/dist
+/public/bower_components

@@ -6,6 +6,9 @@ import credentials from '../common/credentials';
 import candidateList from '../common/candidates';
 import socket from 'socket.io';
 import request from 'request';
+import express from 'express';
+import { readFileSync } from 'fs';
+
 
 const prequest = url => new Promise((res, rej) => {
   request.get(url, (error, response) => {
@@ -23,6 +26,10 @@ const db      = pmongo('twitter-poll'),
         rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
       };
 
+
+twitter.createIndex({ date: 1 }, { expireAfterSeconds: 24*60*60 });
+
+
 const candidates = candidateList.map(name => {
   const regex = new RegExp(
     name.toLowerCase()
@@ -31,8 +38,35 @@ const candidates = candidateList.map(name => {
 });
 
 
-watchTwitter();
-//retrieveMarketData();
+/*
+ * Main function call
+ */
+server();
+
+
+function server() {
+
+  // start websocket + twitter scraper
+  watchTwitter();
+
+  // request new polls + markets every hour
+  setInterval(() => {
+    retrieveMarketData();
+    retrievePollData();
+  }, 1000*60*60);
+
+  const app = express();
+
+  // respond with "hello world" when a GET request is made to the homepage
+  app.use(express.static('public'));
+
+  const server = app.listen(8000, function () {
+    const host = server.address().address;
+    const port = server.address().port;
+
+    console.log('Express listening at http://%s:%s', host, port);
+  });
+}
 
 
 async function retrieveMarketData() {
@@ -51,6 +85,22 @@ async function retrieveMarketData() {
   } catch (error) {
     console.log(error.stack || error);
   }
+}
+
+
+async function queryMarketData() {
+  const [ data ]  = await markets
+      .find({})
+      .sort({ _id : -1 })
+      .limit(1)
+      .toArray();
+
+  const out = candidates.reduce((out, { name }) => {
+    out.data[name] = data.percentages[name];
+    return out;
+  }, { data: {} });
+  out.date = data.date;
+  return out;
 }
 
 
@@ -143,24 +193,32 @@ async function watchTwitter() {
 
     let clients = 0;
 
-    wss.broadcast = (data, type='data') => wss.sockets.emit(type, JSON.stringify(data));
+    wss.broadcast = (data, type='data') => wss.sockets.emit(
+      type, JSON.stringify(data)
+    );
 
     wss.on('connect', async(ws) => {
       console.log();
       // send minute and hour level aggregations
       const [ minute, hour ] = await* [seriesPer('minute'), seriesPer('hour')];
+
       ws.emit('data', JSON.stringify({
         type: 'series',
         data: { minute, hour }
       }));
-      ws.emit('polls', JSON.stringify(await queryPollData()))
-      clients++;
-      wss.broadcast({ clients }, 'count');
+
+      ws.emit('polls', JSON.stringify(await queryPollData()));
+      ws.emit('markets', JSON.stringify(await queryMarketData()));
+
       ws.on('disconnect', () => {
         clients--;
         wss.broadcast({ clients }, 'count');
         console.log(`Client disconnected... (${clients} connections open)`);
       });
+
+      clients++;
+      wss.broadcast({ clients }, 'count');
+
       console.log(`Client connected... (${clients} connections open)`);
     });
 
@@ -201,7 +259,10 @@ async function watchTwitter() {
       const text = tweet.text.toLowerCase();
       candidates.forEach(candidate => {
         if(candidate.in(text)) {
-          twitter.insert({ name: candidate.name, date: new Date() });
+          twitter.insert({
+            name: candidate.name,
+            date: new Date()
+          });
         }
       });
     });

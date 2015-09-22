@@ -10,7 +10,9 @@ import babelify     from 'babelify';
 import asyncHelpers from 'async';
 import source       from 'vinyl-source-stream';
 import buffer       from 'vinyl-buffer';
+import arg          from 'yargs';
 
+const args = arg.argv;
 
 gulp.task('build', ['compile', 'browserify']);
 
@@ -21,18 +23,16 @@ gulp.task('compile', () => asyncHelpers.parallel([
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('./dist/server/'))
+    .pipe(gulp.dest('./public/dist/server/'))
     .on('end', cb),
   cb => gulp
     .src(['./src/common/**/*.js'])
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('./dist/common/'))
+    .pipe(gulp.dest('./public/dist/common/'))
     .on('end', cb)
 ]));
-
-
 
 
 
@@ -43,30 +43,24 @@ gulp.task('browserify', () => {
         .bundle()
         .on('error', function(err) { console.error(err); this.emit('end'); });
 
-  const dest = gulp.dest('./dist/client/');
+  const dest = gulp.dest('./public/dist/client/');
 
-  return asyncHelpers.parallel([
+  const b = bundle
+    .pipe(source('bundle.js'))
+    .pipe(buffer())
 
-    cb => bundle
-        .pipe(source('bundle.js'))
-        .pipe(buffer())
-        .pipe(sourcemaps.init({ loadMaps: true }))
-        .pipe(sourcemaps.write('./'))
-        .pipe(dest)
-        .on('end', cb),
+  if (args.prod) {
+    return b.pipe(uglify({mangle : true}))
+            .pipe(dest);
+  }
 
-    cb => bundle
-        .pipe(source('bundle.min.js'))
-        .pipe(buffer())
-        .pipe(uglify({mangle : true}))
-        .pipe(dest)
-        .on('end', cb)
-
-  ]);
+  return b.pipe(sourcemaps.init({ loadMaps: true }))
+          .pipe(sourcemaps.write('./'))
+          .pipe(dest);
 });
 
 function reload() {
-  return gulp.src(['./dist/client/**/*.js', './index.html'])
+  return gulp.src(['./public/dist/client/**/*.js', './index.html'])
     .pipe(livereload());
 }
 
@@ -89,6 +83,7 @@ gulp.task('watch', ['webserver'], () => {
   })
   .on('restart', reload);
 });
+
 
 
 gulp.task('default', ['watch']);

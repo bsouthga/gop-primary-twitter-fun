@@ -81,7 +81,8 @@ export default class Chart {
           .attr({
             r: 4,
             cx : d => x(new Date(_.last(d.points).date)),
-            cy : d => y(_.last(d.points).value)
+            cy : d => y(_.last(d.points).value),
+            class: d => d._id.replace(' ', '-').toLowerCase()
           })
           .style({
             stroke: d => util.colors(d._id)
@@ -95,7 +96,8 @@ export default class Chart {
           .attr('height', util.imageSize)
           .attr({
             x : d => x(new Date(_.last(d.points).date)) - util.imageSize/2,
-            y : d => y(_.last(d.points).value) - util.imageSize - 10
+            y : d => y(_.last(d.points).value) - util.imageSize - 10,
+            class: d => d._id.replace(' ', '-').toLowerCase()
           })
          .attr('xlink:href', d => `public/images/${d._id.replace(' ', '_')}.png`);
 
