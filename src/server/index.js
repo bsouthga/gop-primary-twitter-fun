@@ -1,95 +1,54 @@
-import Twit from 'twit';
-import _ from 'lodash';
-import moment from 'moment';
-import pmongo from 'promised-mongo';
-import credentials from '../common/credentials';
-import candidateList from '../common/candidates';
-import socket from 'socket.io';
-import request from 'request';
-import express from 'express';
-import { readFileSync } from 'fs';
+/*
+ *
+ * ExpressJS server and websocket
+ *
+ */
 
 
-const prequest = url => new Promise((res, rej) => {
-  request.get(url, (error, response) => {
-    error ? rej(error) : res(response);
-  });
-});
 
-const db      = pmongo('twitter-poll'),
+import _              from 'lodash';
+import moment         from 'moment';
+import pmongo         from 'promised-mongo';
+import candidateList  from '../common/candidates';
+import socket         from 'socket.io';
+import express        from 'express';
+
+
+
+const ports   = { express: 8000, socket: 8080 },
+      db      = pmongo('twitter-poll'),
       twitter = db.collection('twitter'),
       markets = db.collection('markets'),
       polls   = db.collection('polls'),
-      urls    = {
-        prediction : 'http://table-cache1.predictwise.com/latest/table_1498.json',
-        // add timestamp as query param
-        rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
-      };
+      candidates = candidateList.map(name => {
+        const regex = new RegExp(name.toLowerCase());
+        return { name, in : s => regex.test(s) };
+      });
 
-
-twitter.createIndex({ date: 1 }, { expireAfterSeconds: 24*60*60 });
-
-
-const candidates = candidateList.map(name => {
-  const regex = new RegExp(
-    name.toLowerCase()
-  );
-  return { name, in : s => regex.test(s) };
-});
 
 
 /*
- * Main function call
+ *
+ *
+ * Start server and socket
+ *
+ *
  */
 server();
 
 
+
 function server() {
-
-  // start websocket + twitter scraper
-  watchTwitter();
-
-  // request new polls + markets every hour
-  setInterval(() => {
-    Promise.all([
-      retrieveMarketData(),
-      retrievePollData()
-    ])
-    .catch(error => {
-      console.log(error.stack || error);
-    });
-  }, 1000*60*60);
-
   const app = express();
 
-  // respond with "hello world" when a GET request is made to the homepage
   app.use(express.static('public'));
-
-  const server = app.listen(8000, function () {
-    const host = server.address().address;
-    const port = server.address().port;
+  const server = app.listen(ports.express, function () {
+    const { address: host, port } = server.address();
 
     console.log('Express listening at http://%s:%s', host, port);
+
+    startSocket();
   });
-}
-
-
-async function retrieveMarketData() {
-  try {
-    const response = await prequest(urls.prediction),
-          data = JSON.parse(response.body),
-          percentages = data.table.reduce((acc, row) => {
-            const [ name, percentage ] = row;
-            acc[name] = parseFloat(percentage);
-            return acc;
-          }, {});
-    await markets.insert({
-      percentages,
-      date: moment(data.timestamp, 'MM-DD-YYYY hh:mma').toDate()
-    });
-  } catch (error) {
-    console.log(error.stack || error);
-  }
 }
 
 
@@ -100,24 +59,19 @@ async function queryMarketData() {
       .limit(1)
       .toArray();
 
-  const out = candidates.reduce((out, { name }) => {
-    out.data[name] = data.percentages[name];
-    return out;
-  }, { data: {} });
-  out.date = data.date;
+  const out = candidates.reduce(
+    (out, { name }) => {
+      out.data[name] = data.percentages[name];
+      return out;
+    }, {
+      data: {},
+      date: data.date
+    });
+
   return out;
 }
 
 
-async function retrievePollData() {
-  const response = await prequest(urls.rcp + `?${+new Date()}`),
-        data = JSON.parse(
-          response.body
-                  .replace('return_json(', '')
-                  .replace(');', '')
-        );
-  await polls.insert(data);
-}
 
 async function queryPollData() {
   const [ data ]  = await polls
@@ -129,17 +83,16 @@ async function queryPollData() {
   return data.poll.rcp_avg[0];
 }
 
-/*
- * Get series for given time length
- */
+
+
 async function seriesPer(time='minute') {
 
   let lookback;
 
   switch(time) {
-  case 'minute': lookback = 'hour'; break;
-  case 'hour':   lookback = 'day'; break;
-  default: throw new Error('Invalid time for series!');
+    case 'minute':  lookback = 'hour'; break;
+    case 'hour':    lookback = 'day'; break;
+    default:        throw new Error('Invalid time for series!');
   }
 
   const baseline = moment().add(-1, lookback).toDate();
@@ -177,6 +130,8 @@ async function seriesPer(time='minute') {
   return _.values(out);
 }
 
+
+
 async function valuesInLast(time='minute') {
   const sums = await twitter.aggregate(
     {$match: {
@@ -190,87 +145,78 @@ async function valuesInLast(time='minute') {
   return sums;
 }
 
-async function watchTwitter() {
+
+
+async function startSocket() {
 
   try {
-    console.log('starting socket.io...');
-    const wss = socket(8080);
+    console.log('starting websocket...');
 
-    let clients = 0;
+    const wss = socket(ports.socket);
+
+    let clients = 0,
+        cache;
+
+    const updateCachedSeries = async() => {
+      cache = await* [
+        seriesPer('minute'),
+        seriesPer('hour'),
+        queryPollData(),
+        queryMarketData()
+      ];
+    };
+
+    // update cache every 5 seconds
+    await updateCachedSeries();
+    setInterval(updateCachedSeries, 5000);
 
     wss.broadcast = (data, type='data') => wss.sockets.emit(
       type, JSON.stringify(data)
     );
 
+    function sendJSON(tag, data) {
+      this.emit(tag, JSON.stringify(data));
+    }
+
     wss.on('connect', async(ws) => {
-      console.log();
-      // send minute and hour level aggregations
-      const [ minute, hour ] = await* [seriesPer('minute'), seriesPer('hour')];
 
-      ws.emit('data', JSON.stringify({
-        type: 'series',
-        data: { minute, hour }
-      }));
+      const [ minute, hour, polls, markets ] = cache;
 
-      ws.emit('polls', JSON.stringify(await queryPollData()));
-      ws.emit('markets', JSON.stringify(await queryMarketData()));
+      ws.sendJSON = sendJSON;
+
+      ws.sendJSON('data',    { type: 'series', data: { minute, hour } });
+      ws.sendJSON('polls',   polls);
+      ws.sendJSON('markets', markets);
 
       ws.on('disconnect', () => {
         clients--;
         wss.broadcast({ clients }, 'count');
-        console.log(`Client disconnected... (${clients} connections open)`);
       });
 
       clients++;
       wss.broadcast({ clients }, 'count');
-
-      console.log(`Client connected... (${clients} connections open)`);
     });
-
-
-    console.log('connecting to twitter api...')
-    const T = new Twit(credentials),
-          filter = { track: candidates.map(c => c.name).join(',') },
-          stream = T.stream('statuses/filter', filter);
 
     console.log('starting websocket broadcast...');
     const interval = setInterval(async() => {
       try {
+
         const [ minute, hour ] = await* [
           valuesInLast('minute'),
           valuesInLast('hour')
         ];
+
         wss.broadcast({
           type: 'point',
           data: { minute, hour }
         });
+
       } catch (error) {
         wss.broadcast({ error });
         console.log(error.stack || error);
         clearInterval(interval);
       }
     }, 1000);
-
-    stream.on('warning', warning => {
-      console.warn(warning);
-    });
-
-    stream.on('error', error => {
-      console.error(error);
-    });
-
-    console.log('monitoring twitter...');
-    stream.on('tweet', tweet => {
-      const text = tweet.text.toLowerCase();
-      candidates.forEach(candidate => {
-        if(candidate.in(text)) {
-          twitter.insert({
-            name: candidate.name,
-            date: new Date()
-          });
-        }
-      });
-    });
 
   } catch (error) {
     console.log(error.stack || error);
