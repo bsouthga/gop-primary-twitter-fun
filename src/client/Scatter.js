@@ -24,7 +24,9 @@ export default class Scatter {
     const y = this.y = d3.scale.linear().range([height, 0]);
 
     // Scale the range of the data
-    const max = Math.max(d3.max(data.series, d => d.x), d3.max(data.series, d => d.y));
+    const max = Math.max(
+      75, Math.max(d3.max(data.series, d => d.x), d3.max(data.series, d => d.y))
+    );
     x.domain([0, max]);
     y.domain([0, max]);
 
@@ -170,7 +172,9 @@ export default class Scatter {
     const { x, y, svg } = this;
 
     // Scale the range of the data
-    const max = Math.max(d3.max(data.series, d => d.x), d3.max(data.series, d => d.y));
+    const max = Math.max(
+      75, Math.max(d3.max(data.series, d => d.x), d3.max(data.series, d => d.y))
+    );
     x.domain([0, max]);
     y.domain([0, max]);
 

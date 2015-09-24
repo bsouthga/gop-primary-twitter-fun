@@ -6,11 +6,12 @@
 
 
 
-import Twit         from 'twit';
-import request      from 'request';
-import pmongo       from 'promised-mongo';
-import candidates   from '../common/candidates';
-import credentials  from '../common/credentials';
+import Twit from 'twit';
+import moment from 'moment';
+import request from 'request';
+import pmongo from 'promised-mongo';
+import candidateList from '../common/candidates';
+import credentials from '../common/credentials';
 
 
 
@@ -22,8 +23,11 @@ const db      = pmongo('twitter-poll'),
         prediction : 'http://table-cache1.predictwise.com/latest/table_1498.json',
         // add timestamp as query param
         rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
-      };
-
+      },
+      candidates = candidateList.map(name => {
+        const regex = new RegExp(name.toLowerCase());
+        return { name, in : s => regex.test(s) };
+      });
 
 
 twitter.createIndex({ date: 1 }, { expireAfterSeconds: 24*60*60 });
@@ -95,7 +99,7 @@ function watchTwitter() {
 
   console.log('connecting to twitter api...')
   const T = new Twit(credentials),
-        filter = { track: candidates.join(',') },
+        filter = { track: candidateList.join(',') },
         stream = T.stream('statuses/filter', filter);
 
   stream.on('warning', warning => {
@@ -123,8 +127,7 @@ function main() {
   // start websocket + twitter scraper
   watchTwitter();
 
-  updateExternalSources();
-
   // request new polls + markets every hour
+  updateExternalSources();
   setInterval(updateExternalSources, 1000*60*60);
 }

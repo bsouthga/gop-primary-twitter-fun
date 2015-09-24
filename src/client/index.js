@@ -49,7 +49,10 @@ angular.module('app', [])
       if (!timeAgg || !chart) {
         return;
       }
-      chart.render(_.values(candidateHash[$scope.timeAgg]));
+      chart.render({
+        series: _.values(candidateHash[$scope.timeAgg]),
+        timeAgg : $scope.timeAgg
+      });
       polls.draw();
       markets.draw();
       bar.draw('update');
@@ -93,8 +96,8 @@ angular.module('app', [])
             }, {});
       polls.date = new Date(data.date);
       candidates.forEach(candidate => {
-        const [first, last] = candidate.toLowerCase().split(' ');
-        polls.data[candidate] = lastNameHash[last]
+        const last = _.last(candidate.toLowerCase().split(' '));
+        polls.data[candidate] = lastNameHash[last];
       });
     });
 
@@ -113,10 +116,20 @@ angular.module('app', [])
             }, candidateHash[time]);
           })
 
-          chart = new Chart({ id: '#race', data: _.values(candidateHash[$scope.timeAgg]) });
+          chart = new Chart({
+            id: '#race',
+            data: {
+              series: _.values(candidateHash[$scope.timeAgg]),
+              timeAgg : $scope.timeAgg
+            } ,
+            initTime: new Date()
+          });
 
           window.onresize = _.debounce(() => {
-            chart.render(_.values(candidateHash[$scope.timeAgg]));
+            chart.render({
+              series: _.values(candidateHash[$scope.timeAgg]),
+              timeAgg : $scope.timeAgg
+            });
             polls.draw();
             markets.draw();
             bar.draw();
@@ -210,7 +223,7 @@ angular.module('app', [])
             }
           });
 
-          chart.update(data);
+          chart.update({ series: data, timeAgg: $scope.timeAgg });
         }
       }
     });

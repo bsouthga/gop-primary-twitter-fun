@@ -5,7 +5,22 @@ body {
 
 a {
   color: #ff4444;
-  text-decoration: none;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+.divider-text tspan {
+  fill: #666;
+}
+
+.agg-divider {
+  stroke: #666;
+  stroke-width: 1px;
+  stroke-dasharray: 3, 3;
 }
 
 .row:not(:first-child) {
@@ -19,10 +34,7 @@ a {
   margin-bottom: -10px;
 }
 
-a:hover {
-  color: #ff4444;
-  text-decoration: underline;
-}
+
 
 button.button-default {
   color: #ff4444;
@@ -71,6 +83,7 @@ circle {
 }
 
 
+
 .axis path,
 .axis line,
 line.divider {
@@ -78,6 +91,23 @@ line.divider {
   stroke: #ff4444;
   stroke-width: 1;
   shape-rendering: crispEdges;
+}
+
+.y.axis.linechart .domain {
+  stroke: none;
+  fill: none;
+}
+
+.y.axis.linechart.grid .tick {
+  stroke: #ff4444;
+  opacity: 0.5;
+  fill: none;
+  stroke-dasharray: 3, 3;
+}
+
+.y.axis.linechart.grid text {
+  stroke: none;
+  fill: none;
 }
 
 .ribbon {

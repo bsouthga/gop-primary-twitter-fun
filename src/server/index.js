@@ -6,24 +6,22 @@
 
 
 
-import _              from 'lodash';
-import moment         from 'moment';
+import _ from 'lodash';
+import moment from 'moment';
 import pmongo         from 'promised-mongo';
-import candidateList  from '../common/candidates';
+import candidates from '../common/candidates';
 import socket         from 'socket.io';
 import express        from 'express';
 
 
 
 const ports   = { express: 8000, socket: 8080 },
+      bcint   = 500,
       db      = pmongo('twitter-poll'),
       twitter = db.collection('twitter'),
       markets = db.collection('markets'),
-      polls   = db.collection('polls'),
-      candidates = candidateList.map(name => {
-        const regex = new RegExp(name.toLowerCase());
-        return { name, in : s => regex.test(s) };
-      });
+      polls   = db.collection('polls');
+
 
 
 
@@ -60,7 +58,7 @@ async function queryMarketData() {
       .toArray();
 
   const out = candidates.reduce(
-    (out, { name }) => {
+    (out, name) => {
       out.data[name] = data.percentages[name];
       return out;
     }, {
@@ -150,10 +148,6 @@ async function valuesInLast(time='minute') {
 async function startSocket() {
 
   try {
-    console.log('starting websocket...');
-
-    const wss = socket(ports.socket);
-
     let clients = 0,
         cache;
 
@@ -169,6 +163,9 @@ async function startSocket() {
     // update cache every 5 seconds
     await updateCachedSeries();
     setInterval(updateCachedSeries, 5000);
+
+    console.log('starting websocket...');
+    const wss = socket(ports.socket);
 
     wss.broadcast = (data, type='data') => wss.sockets.emit(
       type, JSON.stringify(data)
@@ -216,7 +213,7 @@ async function startSocket() {
         console.log(error.stack || error);
         clearInterval(interval);
       }
-    }, 1000);
+    }, bcint);
 
   } catch (error) {
     console.log(error.stack || error);
