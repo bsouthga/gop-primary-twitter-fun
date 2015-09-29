@@ -4,9 +4,10 @@ import util from './util';
 
 export default class Bar {
 
-  constructor({ id, data }) {
+  constructor({ id, data, exclude=new Set }) {
     this.container = d3.select(id);
     this.numberFormat = d3.format(',.0f');
+    this.exclude = exclude;
     this.render(data);
   }
 
@@ -25,12 +26,19 @@ export default class Bar {
     const y = this.y = d3.scale.linear().range([height, 0]);
 
     // Adds the svg canvas
-    const svg = this.svg = this.container.html('')
+    let svg = this.container.html('')
       .append('svg')
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-      .append('g')
+        .attr('height', height + margin.top + margin.bottom);
+
+    d3.selectAll('#filter-container .children').each(function() {
+      svg.node().appendChild(this);
+    });
+
+    svg = this.svg = svg.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
+
+
 
     y.domain([0, d3.max(data, d => d.value)]);
 
@@ -55,15 +63,24 @@ export default class Bar {
 
     const headSize = Math.min(barWidth*0.8, margin.bottom*0.8)
 
-    bar.append('image')
+    const images = bar.append('image')
         .attr('width', headSize)
         .attr('height', headSize)
         .attr({
           x :  function() { return barWidth/2 - this.getBoundingClientRect().width/2; },
           y : height + 10,
-          class: d => d.name.replace(' ', '-').toLowerCase()
+          class: d => 'hvr-wobble-top clickable ' + d.name.replace(' ', '-').toLowerCase()
         })
        .attr('xlink:href', d => `images/${d.name.replace(' ', '_')}.png`);
+
+
+    images.on('click', d => {
+      const { name } = d;
+      const node = svg
+        .select('image.' + name.replace(' ', '-').toLowerCase());
+      this.exclude[node.classed('excluded') ? 'delete' : 'add'](name);
+      node.classed('excluded', this.exclude.has(name));
+    });
 
     return this;
   }

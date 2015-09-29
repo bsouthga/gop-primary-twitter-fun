@@ -19,6 +19,7 @@ angular.module('app', [])
   .controller('main', ['$scope', $scope => {
 
     const timeAggTypes = ['minute', 'hour'],
+          exclude = new Set,
           candidateHash = timeAggTypes.reduce(
             (agg, time) => (agg[time] = {}, agg), {}
           ),
@@ -122,7 +123,8 @@ angular.module('app', [])
               series: _.values(candidateHash[$scope.timeAgg]),
               timeAgg : $scope.timeAgg
             } ,
-            initTime: new Date()
+            initTime: new Date(),
+            exclude
           });
 
           window.onresize = _.debounce(() => {
@@ -173,7 +175,8 @@ angular.module('app', [])
           if (!bar.chart) {
             bar.chart = new Bar({
               id: '#race-bar',
-              data: bar.data[$scope.timeAgg]
+              data: bar.data[$scope.timeAgg],
+              exclude
             });
           } else {
             bar.draw('update')
@@ -187,7 +190,8 @@ angular.module('app', [])
                 date: polls.date,
                 series: polls.series[$scope.timeAgg]
               },
-              xTitle: 'Real Clear Politics Poll Average'
+              xTitle: 'Real Clear Politics Poll Average',
+              exclude
             });
           } else {
             polls.draw('update');
@@ -201,7 +205,8 @@ angular.module('app', [])
                 date: markets.date,
                 series: markets.series[$scope.timeAgg]
               },
-              xTitle: 'PredictWise Estimates'
+              xTitle: 'PredictWise Estimates',
+              exclude
             });
           } else {
             markets.draw('update');

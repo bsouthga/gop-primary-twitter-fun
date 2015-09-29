@@ -4,9 +4,10 @@ import util from './util';
 
 export default class Chart {
 
-  constructor({ id, data, initTime }) {
+  constructor({ id, data, initTime, exclude=new Set }) {
     this.container = d3.select(id);
     this.initTime = initTime;
+    this.exclude = exclude;
     this.render(data);
   }
 
@@ -16,7 +17,13 @@ export default class Chart {
 
     const { container } = this;
 
-    const points = _(data.series).pluck('points').flatten().value();
+    console.log(data);
+
+    const points = _(data.series)
+      .filter(({ _id }) => !this.exclude.has(_id))
+      .pluck('points')
+      .flatten()
+      .value();
 
     // Set the dimensions of the canvas / graph
     const bbox   = this.container.node().getBoundingClientRect(),
@@ -284,7 +291,11 @@ export default class Chart {
 
     const { x, y, initTime } = this;
 
-    const points = _(data.series).pluck('points').flatten().compact().value();
+    const points = _(data.series)
+      .filter(({ _id }) => !this.exclude.has(_id))
+      .pluck('points')
+      .flatten()
+      .value();
 
     // Scale the range of the data
     const [ xMin, xMax ] = d3.extent(points, d => new Date(d.date));

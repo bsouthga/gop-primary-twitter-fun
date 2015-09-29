@@ -13,6 +13,11 @@ a:hover {
   font-weight: bold;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+
 .divider-text tspan {
   fill: #666;
 }

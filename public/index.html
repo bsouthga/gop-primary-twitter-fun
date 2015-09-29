@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet"href="/bower_components/skeleton/css/normalize.css" charset="utf-8">
-    <link rel="stylesheet"href="/bower_components/skeleton/css/skeleton.css" charset="utf-8">
+    <link rel="stylesheet" href="/bower_components/skeleton/css/normalize.css" charset="utf-8">
+    <link rel="stylesheet" href="/bower_components/skeleton/css/skeleton.css" charset="utf-8">
+    <link rel="stylesheet" href="/bower_components/hover/css/hover-min.css">
     <link rel="stylesheet" href="/css/main.css" media="screen" title="no title" charset="utf-8">
     <title>GOP Twitter Derby</title>
   </head>
@@ -15,6 +16,16 @@
       View me on GitHub!
     </a>
     <div class="container">
+
+      <svg id="filter-container">
+        <filter id="greyscale" class="children">
+        <feColorMatrix type="matrix" class="children" values="0.3333 0.3333 0.3333 0 0
+          0.3333 0.3333 0.3333 0 0
+          0.3333 0.3333 0.3333 0 0
+          0 0 0 1 0" />
+        </filter>
+      </svg>
+
 
       <div class="row">
         <h1>The GOP Twitter Derby</h1>
