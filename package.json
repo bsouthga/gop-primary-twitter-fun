@@ -11,8 +11,14 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.4.2",
+    "babel-core": "^5.8.25",
+    "babel-runtime": "^5.8.24",
     "babelify": "^6.3.0",
+    "bower": "^1.5.2",
     "browserify": "^11.1.0",
+    "d3": "^3.5.6",
+    "express": "^4.13.3",
+    "forever": "^0.15.1",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.1",
     "gulp-livereload": "^3.8.0",
@@ -20,13 +26,6 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.4.1",
     "gulp-webserver": "^0.9.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "babel-core": "^5.8.25",
-    "babel-runtime": "^5.8.24",
-    "bower": "^1.5.2",
-    "d3": "^3.5.6",
-    "express": "^4.13.3",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "promised-mongo": "^1.2.0",
@@ -34,6 +33,8 @@
     "socket.io": "^1.3.6",
     "socket.io-client": "^1.3.6",
     "twit": "^2.1.0",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
     "yargs": "^3.25.0"
   }
 }
