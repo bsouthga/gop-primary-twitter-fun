@@ -31,7 +31,8 @@ const db      = pmongo('twitter-poll'),
 
 
 twitter.createIndex({ date: 1 }, { expireAfterSeconds: 24*60*60 });
-
+markets.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
+polls.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
 
 
 const prequest = url => new Promise((res, rej) => {
@@ -39,7 +40,6 @@ const prequest = url => new Promise((res, rej) => {
     error ? rej(error) : res(response);
   });
 });
-
 
 
 /*
@@ -60,6 +60,8 @@ async function retrievePollData() {
                   .replace('return_json(', '')
                   .replace(');', '')
         );
+
+  data.insertDate = new Date();
   await polls.insert(data);
 }
 
@@ -76,7 +78,8 @@ async function retrieveMarketData() {
           }, {});
     await markets.insert({
       percentages,
-      date: moment(data.timestamp, 'MM-DD-YYYY hh:mma').toDate()
+      date: moment(data.timestamp, 'MM-DD-YYYY hh:mma').toDate(),
+      insertDate: new Date()
     });
   } catch (error) {
     console.log(error.stack || error);
