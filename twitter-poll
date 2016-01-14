@@ -2,7 +2,7 @@
 
 run() {
   local FOREVER="./node_modules/.bin/forever"
-  local SERVER="./public/dist/server"
+  local SERVER="./public/server"
 
   start() {
     $FOREVER start $SERVER/worker.js

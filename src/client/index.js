@@ -40,7 +40,8 @@ angular.module('app', [])
           },
           polls = { data: {}, series: {}, draw },
           markets = { data: {}, series: {}, draw },
-          ws = io(`${config.socket.url}:${config.ports.socket}`);
+          socketUrl = `${config.socket.url}:${config.ports.socket}/`,
+          ws = io(socketUrl);
 
     let chart,
         errorCount = 0;

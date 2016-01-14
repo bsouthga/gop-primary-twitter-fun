@@ -1,4 +1,6 @@
 /node_modules
 credentials.js
-/public/dist
+/public/client
+/public/common
+/public/server
 /public/bower_components

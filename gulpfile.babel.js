@@ -22,14 +22,14 @@ gulp.task('compile', () => asyncHelpers.parallel([
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('./public/dist/server/'))
+    .pipe(gulp.dest('./public/server/'))
     .on('end', cb),
   cb => gulp
     .src(['./src/common/**/*.js'])
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('./public/dist/common/'))
+    .pipe(gulp.dest('./public/common/'))
     .on('end', cb)
 ]));
 
@@ -42,7 +42,7 @@ gulp.task('browserify', () => {
         .bundle()
         .on('error', function(err) { console.error(err); this.emit('end'); });
 
-  const dest = gulp.dest('./public/dist/client/');
+  const dest = gulp.dest('./public/client/');
 
   const b = bundle
     .pipe(source('bundle.js'))
@@ -59,7 +59,7 @@ gulp.task('browserify', () => {
 });
 
 function reload() {
-  return gulp.src(['./public/dist/client/**/*.js', './index.html'])
+  return gulp.src(['./public/client/**/*.js', './index.html'])
     .pipe(livereload());
 }
 
@@ -71,7 +71,7 @@ gulp.task('watch', ['build'], () => {
   gulp.watch(['./src/client/**/*.js', 'index.html'], ['browserify']);
   gulp.watch(['./src/server/**/*.js'], ['compile']);
   nodemon({
-    script: 'public/dist/server/index.js',
+    script: 'public/server/index.js',
     ext: 'js html',
     env: { 'NODE_ENV': 'development' }
   })
