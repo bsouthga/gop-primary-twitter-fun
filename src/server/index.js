@@ -19,10 +19,10 @@ import pmongo         from 'promised-mongo';
 import candidates from '../common/candidates';
 import socket         from 'socket.io';
 import express        from 'express';
+import config         from '../common/config'
 
 
-
-const ports   = { express: 8000, socket: 8080 },
+const ports   = config.ports,
       bcint   = 500,
       db      = pmongo('twitter-poll'),
       twitter = db.collection('twitter'),

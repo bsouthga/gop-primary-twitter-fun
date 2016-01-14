@@ -5,6 +5,7 @@ import Bar from './Bar';
 import Scatter from './Scatter';
 import moment from 'moment';
 import candidates from '../common/candidates';
+import config from '../common/config';
 
 /*
   TODO:
@@ -39,7 +40,7 @@ angular.module('app', [])
           },
           polls = { data: {}, series: {}, draw },
           markets = { data: {}, series: {}, draw },
-          ws = io('http://localhost:8080/');
+          ws = io(`${config.socket.url}:${config.ports.socket}`);
 
     let chart,
         errorCount = 0;
