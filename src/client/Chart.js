@@ -17,8 +17,6 @@ export default class Chart {
 
     const { container } = this;
 
-    console.log(data);
-
     const points = _(data.series)
       .filter(({ _id }) => !this.exclude.has(_id))
       .pluck('points')

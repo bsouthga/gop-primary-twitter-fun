@@ -4,7 +4,6 @@ import babel        from 'gulp-babel';
 import uglify       from 'gulp-uglify';
 import livereload   from 'gulp-livereload';
 import nodemon      from 'gulp-nodemon';
-import webserver    from 'gulp-webserver';
 import browserify   from 'browserify';
 import babelify     from 'babelify';
 import asyncHelpers from 'async';
