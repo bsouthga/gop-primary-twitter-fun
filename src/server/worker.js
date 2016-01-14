@@ -11,7 +11,7 @@ import moment from 'moment';
 import request from 'request';
 import pmongo from 'promised-mongo';
 import candidateList from '../common/candidates';
-import credentials from '../common/credentials';
+import credentials from '../../credentials';
 
 
 
