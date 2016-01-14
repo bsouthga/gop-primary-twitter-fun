@@ -3,7 +3,7 @@
 
 #### What is this?
 
-A site to watch the twitterverse rage about the repubs in real time!
+[A site](http://gop.bsouth.ga) to watch the twitterverse rage about the repubs in real time!
 
 #### How does it do that?
 
