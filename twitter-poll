@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 
-FOREVER=./node_modules/.bin/forever
-SERVER=./public/dist/server
+run() {
+  local FOREVER="./node_modules/.bin/forever"
+  local SERVER="./public/dist/server"
 
-start() {
-  $FOREVER start $SERVER/worker.js
-  $FOREVER start $SERVER/index.js
+  start() {
+    $FOREVER start $SERVER/worker.js
+    $FOREVER start $SERVER/index.js
+  }
+
+  stop() {
+    $FOREVER stopall
+  }
+
+  [ "$1" == "start" ] && start
+  [ "$1" == "stop" ] && stop
 }
 
-stop() {
-  $FOREVER stopall
-}
-
-[ $1 == "start" ] && start
-[ $1 == "stop" ] && stop
+run $1
