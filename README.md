@@ -7,7 +7,7 @@
 
 #### How does it do that?
 
-Pretty basic, I open a [garden hose](https://dev.twitter.com/streaming/public)
+I open a [garden hose](https://dev.twitter.com/streaming/public)
 thread that watches the full names of candidates for mentions on twitter.
 
 #### Just the full names? That doesn't seem very scientific!
