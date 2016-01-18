@@ -30,7 +30,7 @@ const db      = pmongo('twitter-poll'),
       });
 
 
-twitter.createIndex({ date: 1 }, { expireAfterSeconds: 24*60*60 });
+twitter.createIndex({ date: 1 }, { expireAfterSeconds: 12*60*60 });
 markets.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
 polls.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
 
