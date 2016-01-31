@@ -119,7 +119,7 @@ function watchTwitter() {
   console.log('monitoring twitter...');
   stream.on('tweet', tweet => {
     const text = format(tweet.text);
-    const date = moment().startOf('minute').toDate();
+    const date = moment().startOf('second').toDate();
     candidates.forEach(candidate => {
       if(candidate.in(text)) {
         twitter.findAndModify({
