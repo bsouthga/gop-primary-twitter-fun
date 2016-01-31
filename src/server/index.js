@@ -111,7 +111,7 @@ async function seriesPer(time='minute') {
         date: { ['$' + time]: '$date' },
         name: '$name'
       },
-      value: { $sum: 1 }
+      value: { $sum: '$count' }
     }},
     {$sort: {'_id.date': 1 }}
   );
@@ -144,7 +144,7 @@ async function valuesInLast(time='minute') {
     }},
     {$group: {
       _id: '$name',
-      value: { $sum: 1 }
+      value: { $sum: '$count' }
     }}
   );
   return sums;

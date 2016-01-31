@@ -24,12 +24,15 @@ const db      = pmongo('twitter-poll'),
         // add timestamp as query param
         rcp: 'http://www.realclearpolitics.com/epolls/json/3823_historical.js'
       },
+      whiteSpace = /\s+/g,
+      format = s => s.replace(whiteSpace, '').toLowerCase(),
       candidates = candidateList.map(name => {
-        const regex = new RegExp(name.toLowerCase());
+        const regex = new RegExp(format(name));
         return { name, in : s => regex.test(s) };
       });
 
 
+twitter.createIndex({ name: 1 });
 twitter.createIndex({ date: 1 }, { expireAfterSeconds: 12*60*60 });
 markets.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
 polls.createIndex({ insertDate: 1 }, { expireAfterSeconds: 24*60*60 });
@@ -115,10 +118,20 @@ function watchTwitter() {
 
   console.log('monitoring twitter...');
   stream.on('tweet', tweet => {
-    const text = tweet.text.toLowerCase();
+    const text = format(tweet.text);
+    const date = moment().startOf('minute').toDate();
     candidates.forEach(candidate => {
       if(candidate.in(text)) {
-        twitter.insert({ name: candidate.name, date: new Date() });
+        twitter.findAndModify({
+          query: { name: candidate.name, date },
+          update: {
+            $inc: { count: 1 }
+          },
+          upsert: true
+        })
+        .catch(error => {
+          console.error(error);
+        });
       }
     });
   });

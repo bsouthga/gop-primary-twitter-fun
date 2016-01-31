@@ -5,6 +5,5 @@ export default [
   'Ted Cruz',
   'Ben Carson',
   'Chris Christie',
-  'Rand Paul',
-  'Carly Fiorina'
+  'Rand Paul'
 ]
