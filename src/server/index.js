@@ -27,7 +27,8 @@ const ports   = config.ports,
       db      = pmongo('twitter-poll'),
       twitter = db.collection('twitter'),
       markets = db.collection('markets'),
-      polls   = db.collection('polls');
+      polls   = db.collection('polls'),
+      maintananceMode = true;
 
 
 
@@ -46,13 +47,18 @@ server();
 function server() {
   const app = express();
 
+  if (maintananceMode) {
+    app.get('/', (req, res) => {
+      res.redirect('/maintainance.html');
+    });
+  }
+
   app.use(express.static('public'));
   const server = app.listen(ports.express, function () {
     const { address: host, port } = server.address();
 
     console.log('Express listening at http://%s:%s', host, port);
-
-    startSocket();
+    if (!maintananceMode) startSocket();
   });
 }
 
